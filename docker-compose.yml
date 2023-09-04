@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: DockerFile
+    container_name: projetoII
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ./src:/var/www/
+    networks:
+      - projetoII_network
+
+  nginx:
+    image: nginx:1.25.1-alpine-slim
+    container_name: nginx
+    restart: always
+    ports: 
+      - "8000:80"
+    volumes:
+      - ./src:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - projetoII_network
+
+  db_postgres:
+    image: postgres:latest
+    container_name: db_projetoII
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db:/var/lib/db
+    environment:
+      - POSTGRES_DB=db_projetoII
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    networks:
+      - projetoII_network
+  
+  db_pgadmin:
+    image: dpage/pgadmin4
+    container_name: db_pgadmin4
+    restart: always
+    ports:
+      - "15432:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    networks:
+      - projetoII_network
+    depends_on:
+      - db_postgres
+
+networks:
+  projetoII_network:
+    driver: bridge

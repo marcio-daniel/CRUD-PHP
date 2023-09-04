@@ -1,0 +1,21 @@
+{
+    "name": "marci/app",
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        },
+        "files": [
+            "app/helpers/helpers.php"
+        ]
+
+    },
+    "authors": [
+        {
+            "name": "Marcio Felipe",
+            "email": "marciofelipe.mfd@gmail.com"
+        }
+    ],
+    "config": {
+        "process-timeout": 0
+    }
+}
