@@ -1,164 +1,166 @@
-## Documentação do Software
+### Especificação Funcional do Sistema
+
+O sistema implementado consiste em uma aplicação web que permite gerenciamento de usuários e rastreamento de peso. Abaixo está a especificação funcional:
+
+#### **1. Autenticação e Sessões**
+- **Cadastro de usuário**
+  - Um usuário pode ser registrado com os seguintes campos: nome, e-mail (único), senha, altura e peso atual.
+  - Senhas diferentes na confirmação são validadas, e o cadastro não é concluído.
+
+- **Login/Logout**
+  - Um usuário pode fazer login informando um e-mail e senha.
+  - O sistema verifica a existência do e-mail e valida a senha.
+  - Após login bem-sucedido, as informações do usuário são armazenadas em uma sessão.
+  - O logout limpa os dados da sessão do usuário.
+
+- **Proteção de Rotas**
+  - As rotas são protegidas por um middleware (`MiddlewareManager`).
+    - O middleware `auth` protege rotas contra acessos não autenticados.
+    - O middleware `logged` redireciona usuários logados que tentam acessar rotas públicas (ex: login e registro).
+
+#### **2. Core Functionality**
+- **IMC (Índice de Massa Corporal)**
+  - O IMC do usuário é calculado e exibido na página inicial após o login.
+  - Baseado no IMC, o sistema classifica o peso do usuário em categorias como "normal", "acima do peso", "obesidade", etc.
+
+- **Rastreamento de Peso**
+  - Um usuário pode salvar um ou mais registros de peso associados a uma data.
+  - Os pesos salvos podem ser consultados em um histórico através de filtros mensais.
+
+#### **3. Estrutura do Sistema**
+- **Roteamento**
+  - O sistema utiliza rotas definidas em `routes.php`.
+  - Rotas do tipo `GET` e `POST` são gerenciadas pela classe `Router`.
+
+- **Armazenamento de Dados**
+  - Há conexão com um banco de dados PostgreSQL.
+  - O sistema armazena informações sobre:
+    - Usuários (tabela `users`).
+    - Pesos associados aos usuários (tabela `weights`).
+
+- **Serviços**
+  - Serviços especializados facilitam ações do controlador, como manipulação de usuários (`UserServices`) e pesos (`WeightService`).
+
+- **Contêiner de Injeção de Dependência**
+  - O sistema utiliza um contêiner para gerenciamento de dependências (`Container`), permitindo a resolução de classes e seus serviços relacionados.
 
 ---
 
-### **Índice**
-1. **Introdução**
-2. **Visão Geral do Sistema**
-3. **Arquitetura do Sistema**
-4. **Descrição do Código**
-5. **Rotas e Fluxo de Uso**
-6. **Diagrama de Arquitetura**
-7. **Conclusão**
+### Descrição de Funcionalidades
 
----
-
-### **1. Introdução**
-
-O sistema descrito visa gerenciar registros de usuários e seus dados biométricos, mais especificamente peso e altura, para calcular e exibir o Índice de Massa Corporal (IMC). Ele conta com funcionalidades como autenticação de usuários, registro de novos usuários, registro de pesos, filtragem de dados e visualização de perfil.
-
-O software foi desenvolvido em **PHP** com suporte a banco de dados PostgreSQL e segue um padrão arquitetural baseado em Injeção de Dependência e Componentização. Ele apresenta uma estrutura modular clara e utiliza ferramentas como o Composer para gerenciar dependências.
-
----
-
-### **2. Visão Geral do Sistema**
-
-O sistema oferece as seguintes funcionalidades principais:
-
-- Registro e autenticação de usuários.
-- Gerenciamento de perfis de usuários (alteração de informações como nome, email, senha e altura).
-- Registro e histórico de pesos dos usuários.
-- Cálculo do IMC e classificação em categorias específicas.
-- Implementação de controle de acesso por middleware para proteger rotas.
-
----
-
-### **3. Arquitetura do Sistema**
-
-O sistema está dividido em várias categorias principais:
-
-1. **Controllers (Controladores)**: Responsáveis por gerenciar a interação entre os usuários e a lógica de negócios.
-   - Exemplos: `HomeController`, `LoginController`, `UserController`, `WeightController`.
-
-2. **Services (Serviços)**: Camada intermediária responsável por gerenciar a lógica de negócios e interações com o repositório.
-   - Exemplos: `UserServices`, `LoginService`, `WeightService`.
-
-3. **Repositories (Repositórios)**: Gerenciam o acesso e manipulação dos dados armazenados no banco de dados.
-   - Exemplos: `UserRepository`, `WeightRepository`.
-
-4. **Helpers**: Contêm funções auxiliares compartilhadas globalmente.
-   - Exemplos: `helpers.php`.
-
-5. **Models**: Representam a estrutura e os comportamentos das entidades no sistema.
-   - Exemplos: `User`, `Weight`.
-
-6. **Views**: Interfaces com o usuário renderizadas em HTML e JavaScript.
-
-7. **Configuração (Container e Rotas)**:
-   - O padrão de Inversão de Controle (IoC) é utilizado, permitindo a injeção de dependências por meio de um container chamado `Container`.
-
----
-
-### **4. Descrição do Código**
-
-A seguir está uma descrição técnica e detalhada de cada componente do sistema:
-
-#### a. **Usuários**
-- **Modelo:** `User`
-  - Contém informações como `id`, `nome`, `email`, `senha`, `altura`, `peso_atual`, `imc`.
-  - Realiza cálculos de IMC com base no peso e altura.
-
-- **Repositório:** `UserRepository`
-  - Gerencia ações diretas no banco de dados, como salvar e editar usuários, além de recuperar informações com base em **ID** ou **email**.
-
-- **Serviço:** `UserServices`
-  - Serviços de criação e atualização de perfis, validando dados e gerenciando possíveis erros.
-
-#### b. **Pesos**
-- **Modelo:** `Weight`
-  - Modela as entradas do usuário relacionadas ao peso.
+#### **1. Controllers (Controladores)**
   
-- **Repositório:** `WeightRepository`
-  - Manipula os dados de peso armazenados, filtrando por histórico e mês.
+- **LoginController**
+  - Manage login e logout.
+  - Renderiza a página de login.
+  - Autentica o usuário com verificação de e-mail e senha.
+  - Provê logout através da destruição da sessão atual.
 
-- **Serviço:** `WeightService`
-  - Gerencia a lógica de negócios para armazenamento das informações de peso.
+- **UserController**
+  - Gerencia a interface do usuário para registro e atualização de perfil.
+  - Renderiza as páginas de registro e perfil.
+  - Manipula o salvamento de novos usuários e atualizações de perfil.
 
-#### c. **Autenticação**
-- Gerenciamento de autenticação implementado pela classe `Authenticator`, verificando e validando email e senhas criptografadas pelo sistema.
+- **WeightController**
+  - Fornece uma interface para registrar o peso do usuário.
+  - Exibe a página "Adicionar Peso" e armazena dados submetidos.
 
-- **Serviços de Login:**
-  1. **LoginService**: Lida com a autenticação e manipulação da sessão.
-  2. **MiddlewareManager**: Protege rotas sensíveis do sistema contra acesso não autenticado.
+#### **2. Repositórios**
+- Implementa acesso ao banco de dados para usuários e pesos.
+  - **UserRepository**: salva/atualiza/extrai dados relacionados aos usuários.
+  - **WeightRepository**: gerencia dados de pesos.
 
----
+#### **3. Views**
+- Templates dinâmicos PHP para páginas front-end, como:
+  - Página inicial (`home`): Mostra IMC do usuário e histórico de pesos.
+  - Registro (`registration`): Permite criar uma nova conta.
+  - Perfil (`profile`): Exibe os dados do perfil (com função de edição).
+  - Adicionar Peso (`weight`): Formulário para registrar novos pesos.
 
-### **5. Rotas e Fluxo de Uso**
-
-As rotas do sistema estão configuradas no arquivo `routes.php` e são divididas em:
-
-#### **Rotas GET:**
-- `/` -> Tela de login.
-- `/registration` -> Tela de registro do usuário.
-- `/home` -> Página inicial (Protegida - Middleware Auth).
-- `/logout` -> Realiza logout e redireciona.
-- `/weight/create` -> Página para adicionar pesos (Protegida).
-- `/user/profile` -> Perfil do usuário (Protegida).
-- `/user/filter` -> Filtra histórico de pesos por mês (Protegida).
-
-#### **Rotas POST:**
-- `/login` -> Realiza autenticação do usuário.
-- `/user/create` -> Cria um novo perfil de usuário.
-- `/user/update` -> Atualiza os dados do usuário (Perfil).
-- `/weight/store` -> Armazena um novo peso do usuário.
+#### **4. Middleware**
+- `MiddlewareManager` redireciona usuários autenticados ou não-autenticados para rotas apropriadas.
 
 ---
 
-### **6. Diagrama de Arquitetura**
+### **Diagramas**
 
-#### **Diagrama do Sistema**
+#### **1. Diagrama Geral de Arquitetura**
 
 ```plaintext
-┌──────────────┐       ┌───────────────┐       ┌───────────────┐       ┌──────────────┐
-│              │       │               │       │               │       │              │
-│  Controllers │──────▶│   Services    │──────▶│  Repositories │──────▶│    Models    │
-│              │       │               │       │               │       │              │
-└──────────────┘       └───────────────┘       └───────────────┘       └──────────────┘
-       ▲                                                            ┌─────┐
-       │                          ┌────────────────────────────────▶│ DB  │
-       │                          │                                 └─────┘
-       │                ┌───────────────────────┐
-       │                │      Middleware       │
-       │                └───────────────────────┘
-       │                          ▲
-       │                          │
-       │                    ┌────────────┐
-       │                    │   Views    │
-       │                    └────────────┘
-       │                          ▲
-       │                          │
-       │                    ┌───────────┐
-       │                    │  Routers  │
-       │                    └───────────┘
++---------------+               +------------------+
+|   Navegador   | <-- HTTP -->  |      Servidor    |
++---------------+               +--------+---------+
+                                       |
+                                       v
+                   +---------------------------------------+
+                   |     Estrutura Principal da Aplicação  |
+                   +---------------------------------------+
+                    | Controllers | Services | Repositories|
+                    +-------------+----------+-------------+
+
+Fluxo Geral de Requisições:
+1. Request --> Router --> MiddlewareManager (verifica autenticação e permissões)
+2. Controlador aciona Service (regra de negócio e validações).
+3. Serviços chamam o Repositório (CRUD no banco de dados).
+4. Resposta exibida via Engine/View.
+
 ```
 
-#### **Fluxo de Registro e Login**
+#### **2. Diagrama de Classes (Simplificado)**
 
-1. Usuário acessa a página de login/cadastro.
-2. Sistema autentica credenciais (se fornecidas) usando `Authenticator` e `LoginService`.
-3. Dados de sessão são criados para gerenciar o acesso do usuário.
+```plaintext
++------------------+
+|    Container     |
++------------------+
+| instances        |
+| set(key, value)  |
+| get(key)         |
++------------------+
 
----
++----------------------+      +------------------+
+|   Authenticator      |      |  MiddlewareManager|
++----------------------+      +------------------+
+| verifyEmail()        |<-->  | verify(type)     |
+| verifyPassword()     |      |                 |
++----------------------+      +------------------+
 
-### **7. Conclusão**
++------------------+   +----------------------+
+|   UserController |   |   UserServices       |
+| create/update()  |<--> save/update UserRepo |
++------------------+   +----------------------+
 
-O sistema é uma solução web que integra uma arquitetura de software bem estruturada com foco em modularidade e boas práticas de desenvolvimento (como Inversão de Controle). Trata-se de um projeto ideal para gerenciar dados biométricos básicos e apresentar um cálculo de IMC de forma interativa e segura.
++----------------------+      +---------------------+
+|  PostgreSQLDatabase  |<---->|   UserRepository    |
+| connect              |      | findById(), save() |
++----------------------+      +---------------------+
 
-### Pontos Positivos:
-1. **Modularização:** Código dividido em camadas distintas e reutilizáveis.
-2. **Segurança:** Middleware protege rotas sensíveis.
-3. **Flexibilidade:** Fácil extensão da lógica de negócio e reuso de componentes.
+```
 
-### Pontos de Melhoria:
-- Melhorar a validação de dados de entrada para maior robustez.
-- Implementar testes automatizados para a manutenção contínua.
+#### **3. Modelagem Representacional do Dados**
+
+```plaintext
+Tabela: `users`
++-------------+--------------+
+| Campo       | Tipo         |
++-------------+--------------+
+| id          | INT (PK)     |
+| name        | STRING       |
+| email       | STRING (UNQ) |
+| password    | STRING       |
+| height      | FLOAT        |
+| current_weight | FLOAT     |
++-------------+--------------+
+
+Tabela: `weights`
++-------------+--------------+
+| Campo       | Tipo         |
++-------------+--------------+
+| id          | INT (PK)     |
+| user_id     | INT (FK)     |
+| weight_val  | FLOAT        |
+| weight_date | DATE         |
++-------------+--------------+
+```
+
+### **Conclusão**
+O sistema implementado baseia-se fortemente em princípios de design limpo, como injeção de dependência, separação de camadas e uso de middleware para controle de autorização. Além disso, fornece uma interface simples para rastreamento de peso e análise de IMC. As rotas e views são responsivas e bem definidas.
