@@ -1,148 +1,147 @@
-### Especificação Funcional do Sistema
+### Especificação Funcional
 
-O sistema descrito é uma aplicação web desenvolvida para gerenciar usuários, suas informações de saúde, como altura, peso e IMC, e permitir a manipulação de históricos de peso. A seguir estão as funcionalidades descritas detalhadamente:
-
----
-
-#### Funcionalidades Gerais:
-1. **Registro de Novos Usuários**:
-    - Formulário na view `registration.php` para registrar um novo usuário.
-    - Validações de senha, altura e peso.
-    - Integração com o banco de dados para salvar os dados do usuário.
-    - Mensagem de erro em caso de e-mail duplicado.
-
-2. **Login**:
-    - Formulário de autenticação na view `login.php`.
-    - Verificação do e-mail e senha usando a classe `Authenticator`.
-    - Uso de serviços para login.
-    - Redirecionamento para a página inicial (`/home`) em caso de autenticação bem-sucedida.
-
-3. **Logout**:
-    - Permite que o usuário saia da aplicação.
-    - Limpa a sessão ativa.
-
-4. **Página Inicial (Home)**:
-    - Exibe informações do usuário, como peso atual, IMC e sua classificação.
-    - Possui filtro por mês para o histórico de pesos.
-    - Requisição de lista filtrada com `AJAX` da rota `/user/filter`.
-
-5. **Gestão de Peso**:
-    - Permite ao usuário adicionar novos registros de peso.
-    - Página de cadastro na view `weight.php`.
-
-6. **Perfil**:
-    - Permite editar dados do perfil do usuário (nome, e-mail, altura e senha).
-    - Mensagens de sucesso ou erro em caso de problemas.
+O código recebido consiste em um sistema de gerenciamento de usuários e histórico de pesos, sua principal funcionalidade é permitir que os usuários possam registrar informações relativas ao peso, altura, perfil, e calcular o Índice de Massa Corporal (IMC). O sistema foi escrito em PHP com um padrão de organização baseado em OOP (Programação Orientada a Objetos) distribuído em diversas classes e módulos. Ele utiliza conceitos como injeção de dependência, PSR-4 autoload e interfaces para abstração.
 
 ---
 
-#### Funcionalidades Técnicas:
-1. **Injeção de Dependência (Container)**:
-    - A classe `Container` é usada para gerenciar dependências do sistema.
-    - Permite instanciar classes automaticamente com dependências usando reflexão (`Reflection`).
+#### Principais Funcionalidades:
 
-2. **Autenticação**:
-    - A classe `Authenticator` verifica e-mails e senhas no repositório de usuários.
-    - Trabalha com sessões para controle de autenticação.
+1. **Gerenciamento de Usuários**
+   - Cadastro de novos usuários.
+   - Login e autenticação de usuários com validação de credenciais.
+   - Atualização dos dados de perfil do usuário, como nome, senha e altura.
+   - Função para listar e buscar usuários.
 
-3. **Modelos**:
-    - `User.php`: Representa o usuário e calcula seu IMC.
-    - `Weight.php`: Representa o histórico de peso do usuário.
+2. **Gerenciamento de Pesos**
+   - Adição de registros de pesos com data.
+   - Visualização de histórico de pesos por mês ou todos os registros.
+   - Filtragem de pesos do histórico.
 
-4. **Repositórios**:
-    - Manipulação de dados (`insert`, `select`, `update`) através de repositórios específicos:
-      - `UserRepository`
-      - `WeightRepository`
+3. **Cálculo de IMC**
+   - O índice de massa corporal (IMC) é calculado automaticamente com base na altura e peso atual registrado pelo usuário.
 
-5. **Serviços**:
-    - Gerenciamento de ações da aplicação relacionados a:
-      - Usuário (`UserService`)
-      - Login (`LoginService`)
-      - Peso (`WeightService`).
+4. **Sistema de Rotas**
+   - Gerenciamento de endereços de páginas para acesso das diferentes funcionalidades.
+   - Suporte a metodologia GET e POST.
+   - Middleware para controle de acesso baseado na sessão do usuário.
 
-6. **Middleware**:
-    - Verificação de autenticação e estado de login antes de executar rotas específicas (`MiddlewareManager`).
+5. **Persistência de Dados**
+   - Interação com banco de dados PostgreSQL por meio de PDO (PHP Data Objects), implementado com métodos para criar, ler, atualizar e excluir dados.
+   - Repositórios implementam interfaces para padronizar os métodos de manipulação de dados.
 
-7. **Roteamento**:
-    - Mapeamento de rotas definido em `routes.php`.
-    - Suporte a `GET` e `POST` para diferentes funcionalidades.
-
-8. **Criptografia**:
-    - Implementação de hashing de senha com BCrypt (`Hashing`).
-
-9. **Visualizações (Views)**:
-    - Utilização de arquivos `PHP` para renderizar páginas web dinâmicas com dados do usuário.
-
-10. **Database**:
-    - Uso do PDO com PostgreSQL.
-    - Classes e interfaces como `DbConnection`, `IPostgreSQLDatabase`, e `PostgreSQLDatabase` permitem interações com o banco.
+6. **Sistema de Template Engine para renderização de views**
+   - Atualização de elementos de interface com base nos dados do usuário.
+   - Manuseio de arquivos PHP vivos e uso de Bootstrap para estilização.
 
 ---
 
-### Diagramas
+#### Arquitetura do Sistema
 
-#### 1. Diagrama de Classes (UML):
-Mostra as principais classes do sistema e suas relações:
+1. **Camada de UI (Views)**
+   - Arquivos dentro do diretório `src/app/views/`, são responsáveis por renderizar o HTML com base nas informações recebidas dos controladores e serviços.
 
-```
-    [Router] --> [MiddlewareManager]
-    [Router] --> [Container]
-    [Router] --> [Controllers]
-    [Controllers] --> [Services]
-    [Services] --> [Repository]
-    [UserRepository] --> [PostgreSQLDatabase]
-    [WeightRepository] --> [PostgreSQLDatabase]
-    [Authenticator] --> [Container]
-    [Container] --> [Service]
-    [Service] --> [Repository]
-```
+2. **Camada de Controladores**
+   - Arquivos dentro de `src/app/controllers/` manipulam as requisições e interagem com os serviços para realizar as operações no sistema.
 
----
+3. **Camada de Serviços**
+   - Arquivos dentro do diretório `src/app/services/` contêm a lógica de negócios, como criação, atualização de perfil e manipulação dos dados de pesos.
 
-#### 2. Diagrama de Contexto (Arquitetura Simplificada):
-Representa as principais interações presentes no sistema:
+4. **Camada de Repositórios**
+   - Arquivos localizados em `src/app/database/` são responsáveis por interagir diretamente com o banco de dados PostgreSQL. Eles utilizam classes e interfaces para separar responsabilidades.
 
-```
-Usuario -> [Interface Web] <--> [Servidor PHP]
-Servidor PHP:
-  |- [Roteador]
-  |- [Controladores (Controllers)]
-  |- [Serviços (Services)]
-  |- [Repositorios]
-  |- [Banco de Dados PostgreSQL]
-Banco de Dados -> [Tabela Usuários e Pesos]
-```
+5. **Extensões e Utilitários**
+   - Funções auxiliares em `src/app/helpers/helpers.php` e `src/app/classes/Container.php`, além do gerenciamento automático de dependência implementado pelo Composer (arquivos em `src/vendor/composer`).
 
 ---
 
-#### 3. Diagrama de Fluxo de Login:
-Representa o processo de autenticação.
+#### Fluxo de Dados
 
-```
-[Usuário] -> [LoginController@index()] -> Exibir view Login
-[LoginController@login()] -> Verificar (email e senha)
-    - Email existe? -> NÃO -> Exibir erro de e-mail.
-                         -> SIM -> Verifica senha.
-    - Senha válida? -> NÃO -> Exibir erro de senha.
-                       -> SIM -> Chama UserService e inicializa sessão.
-[Redirect para /Home]
+1. O usuário faz o login através da tela de login (`src/app/views/login.php`) informando email e senha.
+2. O controlador `LoginController.php` utiliza a classe `Authenticator.php` para verificar a autenticidade das credenciais do usuário.
+3. Após o sucesso no login, uma sessão é iniciada pelo serviço de login: `LoginService.php`. O usuário é redirecionado para a página inicial (home).
+4. Na página inicial (`src/app/views/home.php`), são exibidas informações como peso atual do usuário e a lista de histórico de pesos.
+5. A funcionalidade para adicionar novos pesos é acessada através do controlador `WeightController.php`, permitindo que os usuários registrem novos valores personalizados de peso e data. Este processo é realizado pelo serviço `WeightService.php`, que persiste os dados via `WeightRepository.php` no banco PostgreSQL.
+6. A página de perfil permite atualizações de informações pessoais no controlador `UserController.php`, utilizando o serviço `UserService.php` que interage com o repositório `UserRepository.php`.
+
+---
+
+#### Diagrama de Classes
+
+**Diagrama de Classes**  
+```plaintext
++--------------------+
+|      User          |
++--------------------+
+| id                 |
+| name               |
+| email              |
+| password           |
+| height             |
+| current_weight     |
+| imc                |
++--------------------+
+| initializeUser()   |
+| getId()            |
+| getImc()           |
+| getCurrent_weight()|
+| verifyPassword()   |
+| setId()            |
++--------------------+
+
++--------------------+
+|      Weight        |
++--------------------+
+| id                 |
+| weight_value       |
+| weight_date        |
+| user_id            |
++--------------------+
+| initializeWeight() |
+| setId()            |
+| getWeight_value()  |
+| getWeight_date()   |
++--------------------+
+ 
++--------------------+                    +---------------+
+|  Authenticator     |  ...........(1)---|   User         |
++--------------------+                    +---------------+
+| email              |                   | name           |
+| password           |                   | email          |
+| verifyEmail()      |                   | password       |
+| verifyPassword()   |                   | height         |
++----------------------------------------+ current_weight |
+
++--------------------+                    
+|  Container         |                    
++--------------------+                    
+| instances[]        |                    
+| getInstance()      |                    
+| set()              |
+| get()              |
++--------------------+
 ```
 
 ---
 
-#### 4. Estrutura do Container (Injeção de Dependência):
-Representa a estrutura do container.
+#### **Diagrama de Fluxo de Funções: Autenticação do Usuário**
 
-```
-[Container] ---> [Instances Array]
-  -->
-  |- IUserRepository -> UserRepository
-  |- IWeightRepository -> WeightRepository
-  |- ILoginService -> LoginService
-  |- IUserService -> UserServices
-  |- IWeightService -> WeightService
+```plaintext
+Usuário -> View Login -> LoginController@index -> Autenticator.php -> User (Data Validation) -> LoginService@login -> Redirect('/home')
 ```
 
 ---
 
-Esse design fornece estrutura e escalabilidade com serviços, repositórios, e injeção de dependência. 
+#### **Requisições e Tratamento**
+
+**Configuração de Rotas no Arquivo `routes.php`:**  
+Exemplo:  
+- Rota GET `/home` chama método `index` no `HomeController` com middleware de autenticação `auth`.  
+
+**Middleware Manager:**  
+- Middleware verifica se conta está logada via sessão `$_SESSION`. Caso contrário, redireciona.
+
+---
+
+#### **Resumo Funcional**
+
+O sistema implementa autenticação robusta, manipulação de dados, interface interativa com Bootstrap, e fácil adaptação de funcionalidades adicionais.
