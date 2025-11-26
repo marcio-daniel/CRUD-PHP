@@ -1,202 +1,156 @@
-### Especificação Funcional
+## Especificação Funcional do Sistema
 
-#### Contexto:
-
-O sistema descrito é uma aplicação web desenvolvida em PHP baseada em um modelo de arquitetura MVC (Model-View-Controller). Ele utiliza conceitos de injeção de dependência e um container para gerenciar instâncias. A aplicação parece ter como objetivo principal gerenciar informações relacionadas ao peso e IMC (Índice de Massa Corporal) dos usuários.
+O sistema desenvolvido é uma aplicação web que possibilita o gerenciamento de peso dos usuários, permitindo o cadastro, login, manipulação de pesos e cálculo de Índice de Massa Corporal (IMC). Abaixo estão as funcionalidades detalhadas:
 
 ---
 
-### Funcionalidades Principais
+### 1. **Rotas e Navegação**
+O sistema mapeia endereços HTTP através de rotas especificadas, utilizando um roteador para ligar rotas às ações dos controladores.
 
-#### 1. **Autenticação**
-   - Utilizar autenticação baseada em email e senha.
-   - Verifica se o email existe no banco de dados ao fazer login.
-   - Verifica se a senha fornecida corresponde àquela armazenada no banco (hashing aplicado).
+- **Rotas GET:**
+  - `/` - Página inicial de login.
+  - `/registration` - Página de registro para criação de conta.
+  - `/home` - Página inicial/logada do sistema.
+  - `/logout` - Desloga o usuário.
+  - `/weight/create` - Formulário para adicionar um novo peso.
+  - `/user/profile` - Página de visualização e edição do perfil do usuário.
+  - `/user/filter` - Consulta o histórico de pesos filtrado por mês.
 
-#### 2. **Sistema de Rotas**
-   - Define rotas baseadas em métodos `GET` e `POST`.
-   - Cada rota verifica o middleware relacionado antes de permitir o acesso.
-
-#### 3. **Cadastro de Usuário**
-   - Cadastro inicial de novos usuários fornecendo informações básicas (email, nome, altura, peso e senha).
-   - Senhas são armazenadas com hashing. IMC é calculado no ato do registro.
-
-#### 4. **Perfil do Usuário**
-   - Permite atualizar as informações do usuário.
-   - Suporte para atualização de senha.
-   - Altura e outros dados podem ser modificados.
-
-#### 5. **Gestão de Pesos**
-   - Adicionar novos registros de peso.
-   - Listar histórico de pesos (todos ou filtrados por mês).
-
-#### 6. **Histórico e Classificação**
-   - Apresenta informações como peso atual, IMC e classificação com base no IMC.
-   - Mostra gráfico ou lista de histórico de pesos.
-
-#### 7. **Middleware para Segurança**
-   - Middleware `auth`: Verifica se o usuário está autenticado antes de permitir o acesso.
-   - Middleware `logged`: Redireciona para a página inicial caso o usuário já esteja logado.
-
-#### 8. **Serviços e Repositórios**
-   - Implementação de serviços responsáveis por lógica de negócio, como LoginService, UserServices e WeightService.
-   - Repositórios gerenciam acesso ao banco de dados.
+- **Rotas POST:**
+  - `/user/create` - Realiza o cadastro de um usuário no sistema.
+  - `/user/update` - Atualiza as informações cadastrais do usuário logado.
+  - `/login` - Realiza login no sistema.
+  - `/weight/store` - Salva o peso inserido pelo usuário.
 
 ---
 
-### Fluxos de Utilização
-
-1. **Fluxo de Cadastro:**
-   - O usuário acessa a página `Registration`.
-   - Preenche nome, email, senha, altura e peso.
-   - O sistema verifica se os dados estão válidos e se já há algum registro com o email fornecido.
-   - Caso o cadastro seja concluído: mostra mensagem de sucesso.
-   - Caso falhe (como emails duplicados): exibe erro de validação.
-
-2. **Fluxo de Login:**
-   - Usuário acessa a página de login.
-   - Insere email e senha.
-   - O sistema verifica a validade do email e confere se a senha está correta.
-   - Caso válido, o usuário é autenticado, e a sessão é iniciada.
-
-3. **Fluxo de Modificação do Perfil:**
-   - Usuário acessa a página de perfil.
-   - Pode alterar informações como email, nome e altura. Adicionar nova senha, se necessário.
-   - O sistema aplica as verificações, realiza a atualização no banco de dados e recalcula o IMC.
-
-4. **Adição de Peso:**
-   - Na página de "Adicionar Peso", insere o peso e a data.
-   - O valor é armazenado no banco de dados associado ao usuário.
-
-5. **Consulta ao Histórico:**
-   - Usuário consulta histórico de pesos, podendo filtrá-los por mês ou então visualizar todos.
-
-6. **Logout:**
-   - Usuário clica em sair.
-   - O middleware destrói a sessão e retorna à página de login.
-
-#### Segurança
-   - As senhas são armazenadas no banco de dados de forma criptografada usando a função `password_hash`.
-   - O sistema utiliza middlewares para controle de acesso.
-   - Sessões são utilizadas para gerenciamento de autenticação.
+### 2. **Controle de Sessão**
+- **MiddlewareManager**: Gerencia verificações antes da execução de certas ações, como:
+  - **`auth`**: Bloqueia acesso não logado.
+  - **`logged`**: Evita acesso à página de login quando o usuário está autenticado.
 
 ---
 
-### Diagramas
+### 3. **Funcionamento do Sistema**
+#### a. **Autenticação**
+- **Login**:
+  - A classe `Authenticator` autentica o usuário verificando o e-mail e senha.
+  - Após validação, o serviço de login (`LoginService`) armazena o usuário na sessão para controle.
 
-#### 1. **Diagrama de Classes**
-Relaciona classes principais e seus métodos.
+- **Logout**:
+  - Remove os dados de sessão e desloga o usuário.
 
-```mermaid
-classDiagram
-    class Authenticator {
-        - $email : string
-        - $password : string
-        - $_userRepository : IUserRepository
-        + __construct($email, $password)
-        + verifyEmail() : bool
-        + verifyPassword() : bool
-    }
+#### b. **Cadastro de Usuário**
+- Um novo usuário pode ser cadastrado verificando:
+  - E-mails duplicados.
+  - Validação da senha e confirmação.
 
-    class Router {
-        - $path : string
-        - $request : string
-        + execute($routes)
-        - routerFound($routes) : void
-        - controllerFound($namespace, $controller, $action) : void
-    }
+#### c. **Gerenciamento de Peso**
+- Os usuários podem:
+  - Salvar seus pesos com data específica.
+  - Consultar históricos de peso filtrando por mês.
+  - Calcular automaticamente o IMC (armazenado no perfil do usuário).
 
-    class IUserRepository {
-        + save(User $user)
-        + edit(User $user, $values)
-        + findUserById($id)
-        + findUserByEmail($email)
-    }
+#### d. **Perfil do Usuário**
+- Os usuários podem:
+  - Atualizar dados pessoais (nome, e-mail e senha).
+  - Editar altura, o que impacta no cálculo do IMC.
 
-    class User {
-        - $name : string
-        - $email : string
-        - $password : string
-        - $height : float
-        - $current_weight : float
-        - $imc : float
-        + initializeUser($name, $email, $password)
-        + verifyPassword($password) : bool
-    }
+---
 
-    class Weight {
-        - $weight_value : float
-        - $weight_date : date
-        - $user_id : int
-    }
+### 4. **Regras de Negócio**
+- Senhas são armazenadas de forma segura utilizando hashing.
+- Apenas usuários autenticados podem acessar funcionalidades protegidas (home, adicionar peso, editar perfil).
+- O IMC é atualizado automaticamente sempre que o peso ou altura é alterado.
 
-    class PostgreSQLDatabase {
-        + connect()
-        + insert($values) : int
-        + select($class, $where, $fields, $orderby) : array
-        + update($values, $id)
-    }
+---
 
-    IUserRepository <-- UserRepository
-    User <-- IUserRepository
-    Router --> MiddlewareManager
+### 5. **Estrutura de Banco de Dados**
+- **Tabela de Usuários (`users`)**
+  - Campos: `id`, `name`, `email`, `password`, `height`, `current_weight`, `imc`.
+
+- **Tabela de Pesos (`weights`)**
+  - Campos: `id`, `weight_value`, `weight_date`, `user_id`.
+
+---
+
+### 6. **Configuração de Dependências (Injeção de Dependências)**
+- O sistema utiliza um container para resolução de dependências e injeção automática de serviços, repositórios e controladores.
+
+---
+
+### 7. **Interface do Usuário**
+- O sistema utiliza **HTML** e **Bootstrap** para interface amigável e responsiva.
+- As páginas incluem:
+  1. Login.
+  2. Registro.
+  3. Página inicial com histórico de peso e cálculo de IMC.
+  4. Adição de novo peso.
+  5. Gerenciamento do perfil.
+
+---
+
+## Diagrama de Arquitetura
+
+### Arquitetura Global do Sistema
+```plaintext
+[Rotas (Routes.php)]
+         |
+ [Roteador (Router.php)]  
+         |
+[Controladores (Controllers - Login, User, Weight, Home)]
+         |
+ [Serviços (Services)]
+         |
+ [Repositórios (Repositories)] -> [Banco de Dados PostgreSQL (users, weights)]
+```
+
+1. **Rotas (`routes.php`)** mapeiam as URLs para os controladores.
+2. **Roteador (`Router.php`)** interpreta requisições HTTP e chama métodos nos controladores.
+3. **Controladores (`Controllers`)** contêm a lógica de ações específicas (login, registro, perfil).
+4. **Serviços (`Services`)** encapsulam a lógica de negócio.
+5. **Repositórios (`Repositories`)** acessam e manipulam o banco através de SQL.
+
+---
+
+### Diagrama de Classe Simplificado
+
+```plaintext
++---------------------+
+|     Authenticator   |
++---------------------+
+| - email             |
+| - password          |
+| + verifyEmail()     |
+| + verifyPassword()  |
++---------------------+
+
++-------------------+             +----------------+
+|  LoginController  |             |   User         |
++-------------------+    uses     +----------------+
+| + login()         |<------------| - id           |
+| + logout()        |             | - email        |
++-------------------+             | - password*    |
+                                  +----------------+
++-------------------+
+|  UserController   |
++-------------------+
+| + create()        |
+| + profile()       |
+| + update()        |
++-------------------+
 ```
 
 ---
 
-#### 2. **Diagrama de Processo: Adicionar Peso**
+### Diagrama de Sequência de Login
 
-```mermaid
-flowchart TD
-    A[Usuário preenche dados de peso e data] --> B[Formulário é enviado]
-    B --> C[Verifica autenticação com Middleware]
-    C --> D[Valida peso e data]
-    D --> E[Cria instância de Weight]
-    E --> F[Armazena dados via WeightRepository]
-    F --> G[Redireciona para a página de adicionar peso]
+```plaintext
+Usuário -> LoginController -> Authenticator -> UserRepository
+   |              |                 |                 |
+  /login  -----> index() -------> verifyEmail() -> busca no banco
+   |              |                 |                 |
+  Insere credenciais verifica senha -> true -----------------
+      |
+ Sessão criada e redireciona "/home"
 ```
-
----
-
-#### 3. **Diagrama de Processo: Login**
-
-```mermaid
-flowchart TD
-    A[Usuário insere email e senha] --> B[Submit Form POST /login]
-    B --> C[Middleware verifica usuário autenticado]
-    C --> D[Authenticator: verifica e-mail]
-    D --> E{Email existe?}
-    E -- Sim --> F[Authenticator: verifica senha]
-    F --> G{Senha é válida?}
-    G -- Sim --> H[Inicia sessão e redireciona para home]
-    G -- Não --> I[Exibe mensagem: "Senha incorreta!"]
-    E -- Não --> J[Exibe mensagem: "E-mail não encontrado!"]
-```
-
----
-
-### Requisitos Técnicos
-
-1. **Banco de Dados**
-   - PostgreSQL.
-   - Estruturas para gerenciar usuários (`users`) e pesos (`weights`).
-
-2. **Serviços**
-   - Serviços como autenticação, armazenamento de pesos, etc.
-
-3. **Middleware**
-   - Garantir controle de autenticação e rotas apropriadas.
-
-4. **Autenticador**
-   - Fazer hashing e validação das senhas de forma segura.
-
-5. **Container**
-   - Utilização de containers para injeção de dependência.
-
---- 
-
-### Observações
-Os arquivos estão bem organizados, seguindo práticas adequadas para projetos MVC. Alguns pontos de melhorias podem ser considerados:
-- Adicionar mais documentação para métodos das classes.
-- Trabalhar com logs para monitorar erros e prevenções de falhas em ambientes de produção.
-Will you like diagrams representing the flow for the entire application's features?
