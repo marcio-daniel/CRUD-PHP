@@ -1,156 +1,155 @@
-## Especificação Funcional do Sistema
-
-O sistema desenvolvido é uma aplicação web que possibilita o gerenciamento de peso dos usuários, permitindo o cadastro, login, manipulação de pesos e cálculo de Índice de Massa Corporal (IMC). Abaixo estão as funcionalidades detalhadas:
+**Especificação Funcional do Sistema**
 
 ---
 
-### 1. **Rotas e Navegação**
-O sistema mapeia endereços HTTP através de rotas especificadas, utilizando um roteador para ligar rotas às ações dos controladores.
-
-- **Rotas GET:**
-  - `/` - Página inicial de login.
-  - `/registration` - Página de registro para criação de conta.
-  - `/home` - Página inicial/logada do sistema.
-  - `/logout` - Desloga o usuário.
-  - `/weight/create` - Formulário para adicionar um novo peso.
-  - `/user/profile` - Página de visualização e edição do perfil do usuário.
-  - `/user/filter` - Consulta o histórico de pesos filtrado por mês.
-
-- **Rotas POST:**
-  - `/user/create` - Realiza o cadastro de um usuário no sistema.
-  - `/user/update` - Atualiza as informações cadastrais do usuário logado.
-  - `/login` - Realiza login no sistema.
-  - `/weight/store` - Salva o peso inserido pelo usuário.
+### Descrição Geral:
+O sistema é uma aplicação web para gerenciamento de usuários e controle de pesos corporais, com foco em calcular o IMC (Índice de Massa Corporal) e fornecer histórico do peso. Ele permite funções como login, registro de novos usuários, perfil para gerenciamento de informações de peso e altura, e também exibição de estatísticas relacionadas ao IMC.
 
 ---
 
-### 2. **Controle de Sessão**
-- **MiddlewareManager**: Gerencia verificações antes da execução de certas ações, como:
-  - **`auth`**: Bloqueia acesso não logado.
-  - **`logged`**: Evita acesso à página de login quando o usuário está autenticado.
+### Casos de uso funcionais:
+
+#### 1. **Sistema de login:**
+   - **Descrição:** Permite que um usuário existente realize login no sistema utilizando email e senha.
+   - **Requisitos:**
+     - Verificação de email registrado no banco de dados.
+     - Validação de senha utilizando hash por meio da classe `Hashing`.
+     - Armazena sessão para usuário logado.
+
+#### 2. **Registro de novos usuários:**
+   - **Descrição:** Cadastra um novo usuário no sistema com nome, email, senha, altura e peso inicial.
+   - **Requisitos:**
+     - Hash de senha ao salvar o usuário.
+     - Cálculo inicial do IMC ao criar o usuário.
+     - Evita cadastro duplicado com emails já existentes.
+
+#### 3. **Gerenciamento de perfil:**
+   - **Descrição:** Permite que o usuário visualize ou atualize as informações do perfil.
+   - **Requisitos:**
+     - Atualização de nome, email, altura e senha.
+     - Recalcular IMC após a alteração da altura.
+     - Senhas precisam ser iguais ao atualizar.
+
+#### 4. **Controle de peso:**
+   - **Descrição:** Permite adicionar registros de peso com data associada ao usuário.
+   - **Requisitos:** 
+     - Registro salvo no banco de dados.
+     - Listagem de histórico baseado em filtro (exemplo: por mês).
+     - Ordenação cronológica (mais recentes primeiro).
+
+#### 5. **Cálculo e Exibição de IMC:**
+   - **Descrição:** Cada usuário tem o cálculo do IMC atualizado e sua classificação é exibida.
+   - **Requisitos:** 
+     - Fórmula: `peso / (altura * altura)`.
+     - Classificações geradas automaticamente com base no IMC (abaixo do peso, normal, sobrepeso, obesidade leve, obesidade grave).
+
+#### 6. **Filtro de histórico por mês:**
+   - **Descrição:** Exibe registros de peso baseados no mês selecionado pelo usuário.
+   - **Requisitos:** 
+     - Consultar valores do banco de dados.
+     - Conversão e filtragem entre datas formatadas.
+
+#### 7. **Sistema de rotas:**
+   - **Descrição:** Mapeamento de todas as páginas e funcionalidades com base nos métodos POST e GET.
+   - **Requisitos:**
+     - Verificação de permissões para rotas protegidas (`auth`).
+     - Redirecionamento condicional para usuários não logados ou logados.
 
 ---
 
-### 3. **Funcionamento do Sistema**
-#### a. **Autenticação**
-- **Login**:
-  - A classe `Authenticator` autentica o usuário verificando o e-mail e senha.
-  - Após validação, o serviço de login (`LoginService`) armazena o usuário na sessão para controle.
+### Tecnologias e Arquitetura:
+#### 1. **Banco de Dados PostgreSQL:**
+   - Tabelas:
+     - `users`: Informações do usuário, incluindo password, altura, peso e IMC.
+     - `weights`: Histórico de pesos associados ao usuário com data.
 
-- **Logout**:
-  - Remove os dados de sessão e desloga o usuário.
+#### 2. **Classes Importantes:**
+   - **`Hashing`**
+     - Métodos: `encrypt` e `decrypt` para hashing de senhas.
+   - **`Authenticator`**
+     - Verifica email e senha de usuários.
+   - **`Engine`**
+     - Renderização de views.
+     - Atualização de perfil de usuário logado.
+   - **`Container`**
+     - Gerenciamento de dependências e instâncias (Inversão de Controle).
+   - **`MiddlewareManager`**
+     - Verificação de restrições e autenticação nas rotas.
+   - **`Router`**
+     - Definição de rotas protegidas e funcionamento geral da navegação.
+   - **`UserServices`**
+     - Serviço de criação e atualização de informações do usuário.
+   - **`WeightService`**
+     - Serviço para gerenciar registros de peso.
 
-#### b. **Cadastro de Usuário**
-- Um novo usuário pode ser cadastrado verificando:
-  - E-mails duplicados.
-  - Validação da senha e confirmação.
+#### 3. **Views (Frontend):**
+Views HTML com Bootstrap para páginas de:
+   - Login 
+   - Cadastro 
+   - Tela principal com dados de peso e IMC
+   - Tela de adição de peso
+   - Tela de perfil.
 
-#### c. **Gerenciamento de Peso**
-- Os usuários podem:
-  - Salvar seus pesos com data específica.
-  - Consultar históricos de peso filtrando por mês.
-  - Calcular automaticamente o IMC (armazenado no perfil do usuário).
+#### 4. **Arquitetura MVC (Model-View-Controller):**
+Seguindo o padrão de MVC, possui:
+   - **Modelos:** `User`, `Weight`.
+   - **Controllers:** `LoginController`, `HomeController`, `UserController`, `WeightController`.
+   - **View:** HTML para exibir as páginas para os usuários.
 
-#### d. **Perfil do Usuário**
-- Os usuários podem:
-  - Atualizar dados pessoais (nome, e-mail e senha).
-  - Editar altura, o que impacta no cálculo do IMC.
-
----
-
-### 4. **Regras de Negócio**
-- Senhas são armazenadas de forma segura utilizando hashing.
-- Apenas usuários autenticados podem acessar funcionalidades protegidas (home, adicionar peso, editar perfil).
-- O IMC é atualizado automaticamente sempre que o peso ou altura é alterado.
-
----
-
-### 5. **Estrutura de Banco de Dados**
-- **Tabela de Usuários (`users`)**
-  - Campos: `id`, `name`, `email`, `password`, `height`, `current_weight`, `imc`.
-
-- **Tabela de Pesos (`weights`)**
-  - Campos: `id`, `weight_value`, `weight_date`, `user_id`.
-
----
-
-### 6. **Configuração de Dependências (Injeção de Dependências)**
-- O sistema utiliza um container para resolução de dependências e injeção automática de serviços, repositórios e controladores.
+#### 5. **Sessões:**
+   - Gerenciamento de estado do usuário via `$_SESSION`.
 
 ---
 
-### 7. **Interface do Usuário**
-- O sistema utiliza **HTML** e **Bootstrap** para interface amigável e responsiva.
-- As páginas incluem:
-  1. Login.
-  2. Registro.
-  3. Página inicial com histórico de peso e cálculo de IMC.
-  4. Adição de novo peso.
-  5. Gerenciamento do perfil.
+### Diagramas:
 
----
+#### 1. **Diagrama de Arquitetura Geral (MVC com IoC):**
 
-## Diagrama de Arquitetura
-
-### Arquitetura Global do Sistema
-```plaintext
-[Rotas (Routes.php)]
-         |
- [Roteador (Router.php)]  
-         |
-[Controladores (Controllers - Login, User, Weight, Home)]
-         |
- [Serviços (Services)]
-         |
- [Repositórios (Repositories)] -> [Banco de Dados PostgreSQL (users, weights)]
+```
+Controller <-----> Service <-----> Repository <-----> Database
+                      |
+                      |
+                   Models
+                      |
+                      |
+                    Views
+                      |
+                      |
+         Middleware & Authentication Management
 ```
 
-1. **Rotas (`routes.php`)** mapeiam as URLs para os controladores.
-2. **Roteador (`Router.php`)** interpreta requisições HTTP e chama métodos nos controladores.
-3. **Controladores (`Controllers`)** contêm a lógica de ações específicas (login, registro, perfil).
-4. **Serviços (`Services`)** encapsulam a lógica de negócio.
-5. **Repositórios (`Repositories`)** acessam e manipulam o banco através de SQL.
+#### 2. **Diagrama de Fluxo funcional (Exemplo: Login):**
 
----
-
-### Diagrama de Classe Simplificado
-
-```plaintext
-+---------------------+
-|     Authenticator   |
-+---------------------+
-| - email             |
-| - password          |
-| + verifyEmail()     |
-| + verifyPassword()  |
-+---------------------+
-
-+-------------------+             +----------------+
-|  LoginController  |             |   User         |
-+-------------------+    uses     +----------------+
-| + login()         |<------------| - id           |
-| + logout()        |             | - email        |
-+-------------------+             | - password*    |
-                                  +----------------+
-+-------------------+
-|  UserController   |
-+-------------------+
-| + create()        |
-| + profile()       |
-| + update()        |
-+-------------------+
-```
-
----
-
-### Diagrama de Sequência de Login
+1. Usuário envia `email` e `password` através do formulário.
+2. `LoginController` invoca a validação do `Authenticator`.
+3. Interface de serviço (`ILoginService`) chamada para gerenciar sessões.
+4. `UserRepository` consulta email e senha.
+5. Resultado:
+   - Se válido: Redirecionamento para `/home`.
+   - Caso contrário: Mensagem de erro exibida na view de Login.
 
 ```plaintext
-Usuário -> LoginController -> Authenticator -> UserRepository
-   |              |                 |                 |
-  /login  -----> index() -------> verifyEmail() -> busca no banco
-   |              |                 |                 |
-  Insere credenciais verifica senha -> true -----------------
-      |
- Sessão criada e redireciona "/home"
+Usuário (Formulário) -------> Controller -------> Authenticator -------> Repository <------ DB
+                                 |
+                                 |
+                              Session
+                                 |
+                                 |
+                              View Home/Login
 ```
+
+#### 3. **Diagrama de Classes Simplificado:**
+
+**Classes Principais:**
+- `User` (Model)
+- `Weight` (Model)
+- `Authenticator` (Serviço)
+- `Router` (Controle de Rotas)
+- `Engine` (Renderização de Views)
+
+```
+Container (IoC) --> [Authenticator, Router, etc.]
+Router ---> (Middleware) ---> Controllers ---> Services ---> Models ---> Database
+```
+
+Com essa especificação funcional e estrutura de diagramas, o funcionamento, dependências e interações do sistema ficaram detalhadas.
